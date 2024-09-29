@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AskGenie</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      background-color: rgb(230, 226, 226);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      max-width: 1600px;
+      margin: 50px auto;
+    }
+    .image-container {
+      width: 800px;
+      margin-right: 5px;
+      
+    }
+    .image-container img {
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .chat-container {
+      flex: 1;
+      padding: 10px;
+      background-color: #bfe4fb;
+      box-shadow: 0 4px 8px rgba(41, 219, 109, 0.1);
+    }
+    .chat-box {
+      height: 700px;
+      overflow-y: scroll;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    .chat-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .user-message {
+      background-color: #9bc6ee;
+      text-align: right;
+    }
+    .bot-message {
+      background-color: white;
+      text-align: left;
+    }
+    .input-container {
+      display: flex;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Image container on the left -->
+    <div class="image-container">
+      <img src="https://i.pinimg.com/736x/e0/aa/ce/e0aace4e8ac951195fbbd1a97b0c1d87.jpg" alt="Image" width="400" height="900">
+    </div>
+
+    <!-- Chat container on the right -->
+    <div class="chat-container">
+      <div class="chat-box" id="chat-box"></div>
+      <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = 'AIzaSyCwy9DfNeaJRGTLbHveLuAyeNYQaF7CvIw'; 
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+
+    function appendMessage(message, sender) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message');
+      messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+      messageElement.innerText = message;
+      chatBox.appendChild(messageElement);
+      chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+    }
+
+    function sendMessage() {
+      const message = userInput.value;
+      if (message.trim() === '') return;
+
+      // Append user message
+      appendMessage(message, 'user');
+      userInput.value = '';  // Clear input field
+
+      // Prepare the data to send to the API
+      const data = {
+        contents: [
+          {
+            parts: [
+              {
+                text: message
+              }
+            ]
+          }
+        ]
+      };
+
+      // Fetch response from the API
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => response.json())
+      .then(result => {
+        const botReply = result.candidates[0].content.parts[0].text;  // Extract bot's response
+        appendMessage(botReply, 'bot');
+      })
+      .catch(error => {
+        appendMessage("Error: Unable to get response from the server", 'bot');
+        console.error('Error:', error);
+      });
+    }
+  </script>
+
+</body>
+</html>
